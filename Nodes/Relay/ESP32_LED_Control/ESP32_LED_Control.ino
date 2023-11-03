@@ -61,7 +61,7 @@ for (int i = 0; i < length; i++) {
 Serial.print((char)payload[i]);
 }
 Serial.println("********** Parse Actuator command");
-if(strcmp((char *)payload, (char*) "module1=1" )== 0){ 
+if( (char)*payload == '1' ){ 
 digitalWrite(LED_pin, 1);
 Serial.println("LED is ON");
 

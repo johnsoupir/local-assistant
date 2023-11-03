@@ -2,3 +2,5 @@
 *.gguf
 
 Assistant/Python/API_KEY
+
+Assistant/Python/assistant.py

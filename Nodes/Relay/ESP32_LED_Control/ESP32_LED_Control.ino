@@ -3,15 +3,15 @@
 #include <PubSubClient.h>
 
 //TODO: ESP32 MQTT user config
-const char* ssid = ".............."; // Wifi SSID
-const char* password = ".............."; // Wifi Password
-const char* username = ".............."; // my AskSensors username
-const char* subTopic = "actuator/............../.............."; // actuator/username/apiKeyOut
-const int LED_pin = 22; // LEd pin
+const char* ssid = "Blah"; // Wifi SSID
+const char* password = "12345678"; // Wifi Password
+const char* username = ""; // my AskSensors username
+const char* subTopic = "esp/output"; // actuator/username/apiKeyOut
+const int LED_pin = 4; // LEd pin
 
 //AskSensors MQTT config
-const char* mqtt_server = "mqtt.asksensors.com";
-unsigned int mqtt_port = 1883;
+const char* mqtt_server = "192.168.128.64";
+unsigned int mqtt_port = 1884;
 
 WiFiClient askClient;
 PubSubClient client(askClient);

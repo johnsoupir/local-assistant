@@ -1,0 +1,98 @@
+[
+    {
+        "Command": "Dim the kitchen lights to 50%",
+        "Response": "Kitchen lights dimmed to 50%.\n###CONTROL kitchen/light, 0.5"
+    },
+    {
+        "Command": "Please set the kitchen lights to 50% brightness",
+        "Response": "Kitchen lights set to 50% brightness.\n###CONTROL kitchen/light, 0.5"
+    },
+    {
+        "Command": "Turn off the kitchen lights",
+        "Response": "Kitchen lights off!\n###CONTROL kitchen/light, 0"
+    },
+    {
+        "Command": "Can you switch off the kitchen lights",
+        "Response": "Kitchen lights switched off!\n###CONTROL kitchen/light, 0"
+    },
+    {
+        "Command": "Set thermostat to 22 degrees",
+        "Response": "Thermostat set to 22 degrees.\n###CONTROL thermostat, 22"
+    },
+    {
+        "Command": "Increase the thermostat by 2 degrees",
+        "Response": "Thermostat increased by 2 degrees.\n###CONTROL thermostat, +2"
+    },
+    {
+        "Command": "Play some jazz music in the living room",
+        "Response": "Playing jazz music in the living room.\n###CONTROL living room/music, jazz"
+    },
+    {
+        "Command": "Please stop the music in the living room",
+        "Response": "Music in the living room stopped.\n###CONTROL living room/music, stop"
+    },
+    {
+        "Command": "Open the garage door",
+        "Response": "Garage door opening.\n###CONTROL garage/door, open"
+    },
+    {
+        "Command": "Can you close the garage door",
+        "Response": "Garage door closing.\n###CONTROL garage/door, close"
+    },
+    {
+        "Command": "Start brewing coffee",
+        "Response": "Coffee brewing started.\n###CONTROL coffee_maker, start"
+    },
+    {
+        "Command": "Can you make a cup of coffee",
+        "Response": "Making a cup of coffee.\n###CONTROL coffee_maker, make_coffee"
+    },
+    {
+        "Command": "Turn off the coffee maker",
+        "Response": "Coffee maker turned off.\n###CONTROL coffee_maker, off"
+    },
+    {
+        "Command": "Set the alarm for 7 AM",
+        "Response": "Alarm set for 7 AM.\n###CONTROL alarm_clock, 7:00"
+    },
+    {
+        "Command": "Play the news in the kitchen",
+        "Response": "Playing the news in the kitchen.\n###CONTROL kitchen/speaker, news"
+    },
+    {
+        "Command": "Can you lower the blinds in the living room",
+        "Response": "Lowering the blinds in the living room.\n###CONTROL living_room/blinds, down"
+    },
+    {
+        "Command": "Water the garden",
+        "Response": "Garden watering started.\n###CONTROL garden/watering_system, on"
+    },
+    {
+        "Command": "Please clean the floor",
+        "Response": "Floor cleaning initiated.\n###CONTROL robotic_vacuum, start_cleaning"
+    },
+    {
+        "Command": "Activate the security system",
+        "Response": "Security system activated.\n###CONTROL security_system, activate"
+    },
+    {
+        "Command": "Set living room temperature to 24 degrees",
+        "Response": "Living room temperature set to 24 degrees.\n###CONTROL living_room/thermostat, 24"
+    },
+    {
+        "Command": "Turn on the dishwasher",
+        "Response": "Dishwasher turned on.\n###CONTROL dishwasher, on"
+    },
+    {
+        "Command": "Please lock the front door",
+        "Response": "Front door locked.\n###CONTROL front_door, lock"
+    },
+    {
+        "Command": "Set the mood lighting in the bedroom",
+        "Response": "Setting mood lighting in the bedroom.\n###CONTROL bedroom/light, mood"
+    },
+    {
+        "Command": "Play relaxing music in the bathroom",
+        "Response": "Playing relaxing music in the bathroom.\n###CONTROL bathroom/speaker, relaxing_music"
+    }
+]

@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-# prerequisites: as described in https://alphacephei.com/vosk/install and also python module `sounddevice` (simply run command `pip install sounddevice`)
-# Example usage using Dutch (nl) recognition model: `python test_microphone.py -m nl`
-# For more help run: `python test_microphone.py -h`
-
 import argparse
 import queue
 import sys
+from time import sleep
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 from gpt4all import GPT4All
@@ -19,6 +16,10 @@ import openai
 from simpleMQTT import create_mqtt_client, connect_to_broker, publish_message, disconnect_broker
 
 
+def setOpenAILocal():
+    openai.api_key = "..."
+    openai.api_base = "http://allevil.local:5000/v1"
+    openai.api_version = "2023-05-15"
 
 def sendMQTT(state):
     if connect_to_broker(mqtt_client):
@@ -43,25 +44,15 @@ def load_KEY(keyfile):
 
 def promptOpenAI(input):
     summary = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo-16k',
+        model='llama-2-7b-chat.Q4_0.gguf',
         messages=[{"role":"user", "content": input}]
     )
     return summary.choices[0].message.content + " "
 
-mqtt_client = create_mqtt_client()
-
-FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/gpt4all-falcon-q4_0.gguf", allow_download=False)
-# FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/mistral-7b-openorca.Q4_0.gguf", allow_download=False)
-llm = Llama(model_path="./llama-2-7b-chat.Q4_0.gguf")
 
 def playAudio(audioFile):
     sound = AudioSegment.from_file(audioFile)
     play(sound)
-
-#def localTTS(inputText, outputFile):
-model_name = 'tts_models/en/ljspeech/tacotron2-DDC'
-tts = TTS(model_name)
-# tts.tts_to_file(text=inputText, file_path=outputFile)
 
 def googleTTS(inputText, outputFile):
     client = texttospeech.TextToSpeechClient()
@@ -85,7 +76,6 @@ def googleTTS(inputText, outputFile):
         out.write(response.audio_content)
 
 
-q = queue.Queue()
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -94,7 +84,6 @@ def int_or_str(text):
     except ValueError:
         return text
 
-audioPlaying = False  # Global variable to indicate audio playback status
 
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
@@ -110,6 +99,27 @@ def callback(indata, frames, time, status):
 #     if status:
 #         print(status, file=sys.stderr)
 #     q.put(bytes(indata))
+
+openai.api_key = load_KEY("API_KEY")
+
+audioPlaying = False  # Global variable to indicate audio playback status
+q = queue.Queue()
+mqtt_client = create_mqtt_client()
+
+# FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/gpt4all-falcon-q4_0.gguf", allow_download=False)
+# FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/mistral-7b-openorca.Q4_0.gguf", allow_download=False)
+# llm = Llama(model_path="./llama-2-7b-chat.Q4_0.gguf")
+
+setOpenAILocal()
+
+# print(openai.ChatCompletion.create("How are you"))
+print(promptOpenAI("Hello, how are you?"))
+print("DONE.")
+sleep(10)
+model_name = 'tts_models/en/ljspeech/tacotron2-DDC'
+tts = TTS(model_name)
+# tts.tts_to_file(text=inputText, file_path=outputFile)
+
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
@@ -135,7 +145,6 @@ parser.add_argument(
     "-m", "--model", type=str, help="language model; e.g. en-us, fr, nl; default is en-us")
 args = parser.parse_args(remaining)
 
-openai.api_key = load_KEY("API_KEY")
 
 try:
     if args.samplerate is None:

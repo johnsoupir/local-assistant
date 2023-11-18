@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 
 # Configuration for MQTT Broker
-MQTT_BROKER = '192.168.128.64'  # Replace with your MQTT broker's address
+MQTT_BROKER = '192.168.133.64'  # Replace with your MQTT broker's address
 MQTT_PORT = 1884  # Standard MQTT port (use 8883 for TLS)
 MQTT_TOPIC = 'esp/output'
 

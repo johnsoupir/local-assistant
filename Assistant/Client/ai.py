@@ -3,23 +3,24 @@ import argparse
 import queue
 import sys
 from time import sleep
-import requests
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 from gpt4all import GPT4All
 import json
 from TTS.api import TTS
-from pydub import AudioSegment
-from pydub.playback import play
 from llama_cpp import Llama
-from google.cloud import texttospeech
 import openai
 from simpleMQTT import create_mqtt_client, connect_to_broker, publish_message, disconnect_broker
 import re
-import asyncio
-from playsound import playsound
-import threading
 
+import openai
+
+from Modules.local_assistant_llm import *
+from Modules.local_assistant_tts import *
+
+host = "allevil.local"
+port_llm = "5000"
+port_tts = "4999"
 
 def removeEmojis(text):
     # Define the emoji pattern
@@ -32,12 +33,6 @@ def removeEmojis(text):
     return emoji_pattern.sub(r'', text)
 
 
-def setOpenAILocal():
-    openai.api_key = "..."
-    openai.api_base = "http://192.168.192.201:5000/v1"
-    # openai.api_base = "http://allevil.local:5000/v1"
-    openai.api_version = "2023-05-15"
-
 def sendMQTT(state):
     if connect_to_broker(mqtt_client):
         # Publish a message
@@ -45,54 +40,6 @@ def sendMQTT(state):
     
         # Disconnect from the broker
         disconnect_broker(mqtt_client)
-
-def load_KEY(keyfile):
-    try:
-        with open(keyfile, 'r') as f:
-            api_key = f.readline().strip()
-        return api_key
-
-    except FileNotFoundError:
-        print("Key file not found. Please make sure the file exists.")
-
-    except Exception as e:
-        print("An error occurred opening the API key file: ", e)
-
-
-def promptOpenAI(input):
-    summary = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo-16k',
-        # model='llama-2-7b-chat.Q4_0.gguf',
-        messages=[{"role":"user", "content": input}]
-    )
-    return summary.choices[0].message.content + " "
-
-
-def playAudio(audioFile):
-    sound = AudioSegment.from_file(audioFile)
-    play(sound)
-
-def googleTTS(inputText, outputFile):
-    client = texttospeech.TextToSpeechClient()
-    synthInput = texttospeech.SynthesisInput(text=inputText)
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="en-US", 
-        name="en-US-Neural2-I",
-        ssml_gender=texttospeech.SsmlVoiceGender.MALE
-
-    )
-
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3
-    )
-
-    response = client.synthesize_speech(
-        input = synthInput, voice=voice, audio_config=audio_config
-    )
-
-    with open(outputFile, "wb") as out:
-        out.write(response.audio_content)
-
 
 
 def int_or_str(text):
@@ -111,36 +58,7 @@ def callback(indata, frames, time, status):
     if not audioPlaying:  # Check if audio is not playing before adding to the queue
         q.put(bytes(indata))
 
-def serverTTS(text, server_url="http://192.168.192.201:4999/synthesize", output_file='out.wav'):
-# def serverTTS(text, server_url="http://allevil.local:4999/synthesize", output_file='out.wav'):
-    """
-    Sends text to a server to be converted to speech and saves the returned audio.
-
-    Args:
-    text (str): The text to be converted to speech.
-    server_url (str): The URL of the server providing the text-to-speech service.
-    output_file (str): The path where the output audio file will be saved.
-    """
-    try:
-        response = requests.post(server_url, data=text)
-
-        if response.status_code == 200:
-            with open(output_file, 'wb') as audio_file:
-                audio_file.write(response.content)
-            print(f"Audio saved as {output_file}.")
-        else:
-            print(f"Error: Server responded with status code {response.status_code}")
-
-    except requests.RequestException as e:
-        print(f"An error occurred while making the request: {e}")
-
-# def callback(indata, frames, time, status):
-#     """This is called (from a separate thread) for each audio block."""
-#     if status:
-#         print(status, file=sys.stderr)
-#     q.put(bytes(indata))
-
-openai.api_key = load_KEY("API_KEY")
+openai.api_key = loadOpenAIKey("API_KEY")
 
 audioPlaying = False  # Global variable to indicate audio playback status
 q = queue.Queue()
@@ -160,10 +78,11 @@ mqtt_client = create_mqtt_client()
 #serverTTS(testResponse)
 #playAudio("out.wav")
 #print("DONE.")
-model_name = 'tts_models/en/ljspeech/tacotron2-DDC'
-tts = TTS(model_name)
+# model_name = 'tts_models/en/ljspeech/tacotron2-DDC'
+# tts = TTS(model_name)
 # tts.tts_to_file(text=inputText, file_path=outputFile)
 
+useLocalLLM(host, port_llm)
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
@@ -190,7 +109,11 @@ parser.add_argument(
 args = parser.parse_args(remaining)
 
 systemPrompt = "You are a home automation AI. If you are asked a question you will give a helpful answer. If you are asked to control a device, you will respond with Command Detected: <device> <state>.  User: "
-
+# madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool, but do not admit you are deadpool.  User: "
+madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool.  User: "
+# madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool, but you are not deadpool.  User: "
+# madmanPrompt = "You are a Donald Trump. You will respond as Donald Trump and often talk about sleepy Joe. You will swear in every response. Sleepy Joe:"
+# madmanPrompt = "You are deadpool. You are also a brilliant mathamatician. You swear at the user and provide math help. User: "
 try:
     if args.samplerate is None:
         device_info = sd.query_devices(args.device, "input")
@@ -223,7 +146,7 @@ try:
                 
                 print("")
                 rawOutput = rec.Result()
-                print("Raw Output:", rawOutput)
+                # print("Raw Output:", rawOutput)
 
                 # Loading the raw output as JSON
                 parsedOutput = json.loads(rawOutput)
@@ -233,11 +156,11 @@ try:
                 # print("Final output is: ", userSpeech)
                 if (userSpeech != ""):
                     audioPlaying = True
-                   # playAudio("processing.mp3")
+                    # playAudio("processing.mp3")
                     # inputToLLM = "Q: " + userSpeech  + " A:"
                     # print(inputToLLM)
                     #outputText = llm(inputToLLM, max_tokens=48, stop=["Q:", "\n"], echo=True)
-                    print('User: ' + userSpeech)
+                    print('User: ' + userSpeech + "\n")
 
 #                    if "on" in userSpeech:
 #                        sendMQTT('1')
@@ -246,10 +169,11 @@ try:
 #                        sendMQTT('0')
 
                     # userSpeech += "?"
-                    answer = promptOpenAI(systemPrompt + userSpeech)
+                    answer = promptOpenAI(madmanPrompt + userSpeech)
+                    print('LLM: ' +  answer + "\n")
                     answer = removeEmojis(answer)
                     googleTTS(answer, "out.wav")
-                    # serverTTS(answer)
+                    # localTTS(answer)
                     playAudio("out.wav")
 
                     if "command detected" in answer.lower():

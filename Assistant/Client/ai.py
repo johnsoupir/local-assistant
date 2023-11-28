@@ -20,6 +20,7 @@ from Modules.local_assistant_tts import *
 
 host = "allevil.local"
 port_llm = "5000"
+port_llm = "8080"
 port_tts = "4999"
 
 def removeEmojis(text):

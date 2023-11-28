@@ -121,7 +121,7 @@ try:
         args.samplerate = int(device_info["default_samplerate"])
         
     if args.model is None:
-        model = Model(lang="en-us")
+        model = Model("./vosk-model-en-us-0.42-gigaspeech")
     else:
         model = Model(lang=args.model)
 

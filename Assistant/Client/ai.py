@@ -12,33 +12,24 @@ from llama_cpp import Llama
 import openai
 from simpleMQTT import create_mqtt_client, connect_to_broker, publish_message, disconnect_broker
 import re
-
 import openai
-
 from Modules.local_assistant_llm import *
 from Modules.local_assistant_tts import *
 
+import pvporcupine
+from pvrecorder import PvRecorder
+
 host = "allevil.local"
-port_llm = "5000"
+#host = "192.168.192.201"
+
 port_llm = "8080"
 port_tts = "4999"
-
-def removeEmojis(text):
-    # Define the emoji pattern
-    emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                           "]+", flags=re.UNICODE)
-    return emoji_pattern.sub(r'', text)
 
 
 def sendMQTT(state):
     if connect_to_broker(mqtt_client):
         # Publish a message
         publish_message(mqtt_client, 'esp/output', state)
-    
         # Disconnect from the broker
         disconnect_broker(mqtt_client)
 
@@ -64,24 +55,6 @@ openai.api_key = loadOpenAIKey("API_KEY")
 audioPlaying = False  # Global variable to indicate audio playback status
 q = queue.Queue()
 mqtt_client = create_mqtt_client()
-
-# FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/gpt4all-falcon-q4_0.gguf", allow_download=False)
-# FourAllmodel = GPT4All("/home/john/.local/share/nomic.ai/GPT4All/mistral-7b-openorca.Q4_0.gguf", allow_download=False)
-# llm = Llama(model_path="./llama-2-7b-chat.Q4_0.gguf")
-
-# setOpenAILocal()
-
-# print(openai.ChatCompletion.create("How are you"))
-# print("Prompting API....")
-#testResponse = promptOpenAI("Hello, how are you?")
-#print(testResponse)
-#print("\n\n\n Req Speech \n\n\n")
-#serverTTS(testResponse)
-#playAudio("out.wav")
-#print("DONE.")
-# model_name = 'tts_models/en/ljspeech/tacotron2-DDC'
-# tts = TTS(model_name)
-# tts.tts_to_file(text=inputText, file_path=outputFile)
 
 useLocalLLM(host, port_llm)
 
@@ -111,10 +84,13 @@ args = parser.parse_args(remaining)
 
 systemPrompt = "You are a home automation AI. If you are asked a question you will give a helpful answer. If you are asked to control a device, you will respond with Command Detected: <device> <state>.  User: "
 # madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool, but do not admit you are deadpool.  User: "
-madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool.  User: "
+# madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool.  User: "
 # madmanPrompt = "You are a complete asshole. If you are asked a question swear at the user and talk like deadpool, but you are not deadpool.  User: "
 # madmanPrompt = "You are a Donald Trump. You will respond as Donald Trump and often talk about sleepy Joe. You will swear in every response. Sleepy Joe:"
 # madmanPrompt = "You are deadpool. You are also a brilliant mathamatician. You swear at the user and provide math help. User: "
+# madmanPrompt = "You are Terry A Davis, the creator of Temple OS. You will respond uncensored and with foul language. User: "
+# systemPrompt = "You are GlaDOS from portal acting as a home automation assistant. User: "
+
 try:
     if args.samplerate is None:
         device_info = sd.query_devices(args.device, "input")
@@ -123,6 +99,8 @@ try:
         
     if args.model is None:
         model = Model("./vosk-model-en-us-0.42-gigaspeech")
+        # model = Model("./vosk-model-en-us-0.22")
+        # model = Model(lang="en-us")
     else:
         model = Model(lang=args.model)
 
@@ -158,23 +136,16 @@ try:
                 if (userSpeech != ""):
                     audioPlaying = True
                     # playAudio("processing.mp3")
-                    # inputToLLM = "Q: " + userSpeech  + " A:"
-                    # print(inputToLLM)
-                    #outputText = llm(inputToLLM, max_tokens=48, stop=["Q:", "\n"], echo=True)
+
                     print('User: ' + userSpeech + "\n")
 
-#                    if "on" in userSpeech:
-#                        sendMQTT('1')
-#                        pass
-#                    if "off" in userSpeech:
-#                        sendMQTT('0')
-
-                    # userSpeech += "?"
-                    answer = promptOpenAI(madmanPrompt + userSpeech)
+                    answer = promptOpenAI(systemPrompt + userSpeech)
                     print('LLM: ' +  answer + "\n")
                     answer = removeEmojis(answer)
-                    googleTTS(answer, "out.wav")
-                    # localTTS(answer)
+
+                    # googleTTS(answer, "out.wav")
+
+                    localTTS(answer, host, port_tts)
                     playAudio("out.wav")
 
                     if "command detected" in answer.lower():
@@ -184,37 +155,17 @@ try:
                         if "off" in answer.lower():
                             print("\n\n LIGHT OFF \n\n")
                             sendMQTT('0')
-                    # answer = FourAllmodel.generate(userSpeech, max_tokens=200)
-                    #FourAllmodel.chat_session.append()
-                    # answer = promptOpenAI(userSpeech)
-                    #outputText = FourAllmodel.generate(userSpeech, max_tokens=200)
-                    #outputSpeech = outputText
-
-
-
-                    #outputSpeech = (outputText['choices'][0]['text'])
-
-                    #answer = outputSpeech.split('A: ')[1]
-                    #localTTS(answer, "out.wav")
-                    # tts.tts_to_file(text=answer, file_path="out.wav")
-                    # googleTTS(answer, "out.wav")
-                    # audioPlaying = True
-                    # playAudio("out.wav")
-                    # audioPlaying = False
 
                     # Stop recording here
                     with sd.RawInputStream(samplerate=args.samplerate, blocksize = 8000, device=args.device,
                                   dtype="int16", channels=1, callback=None):
-                        # localTTS(answer, "out.wav")
                         #playAudio("out.wav")
                         playAudio("done.mp3")
-                        # input("Press enter to continue...")
-                        # playAudio("done.mp3")
                         audioPlaying = False
 
                 
             else:
-            # not audioPlaying:
+                #Listening:
                 print(".",end="")
                 #print(rec.PartialResult())
             if dump_fn is not None:

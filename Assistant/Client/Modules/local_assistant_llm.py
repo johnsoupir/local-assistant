@@ -37,3 +37,8 @@ def removeEmojis(text):
                            "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', text)
 
+
+def cleanForTTS(text):
+    validChars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
+    cleanText = ''.join(c for c in text if c in validChars)
+    return cleanText

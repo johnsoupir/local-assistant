@@ -56,3 +56,11 @@ if __name__ == "__main__":
         publish_message(client, MQTT_TOPIC, '1')
         disconnect_broker(client)
 
+def sendMQTT(state, mqtt_client):
+    if connect_to_broker(mqtt_client):
+        # Publish a message
+        publish_message(mqtt_client, 'esp/output', state)
+    
+        # Disconnect from the broker
+        disconnect_broker(mqtt_client)
+

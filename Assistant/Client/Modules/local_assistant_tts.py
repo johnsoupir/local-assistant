@@ -41,7 +41,7 @@ def localTTS(text, host, port, output_file='out.wav'):
         if response.status_code == 200:
             with open(output_file, 'wb') as audio_file:
                 audio_file.write(response.content)
-            print(f"Audio saved as {output_file}.")
+            # print(f"Audio saved as {output_file}.")
         else:
             print(f"Error: Server responded with status code {response.status_code}")
 

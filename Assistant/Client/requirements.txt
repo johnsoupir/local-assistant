@@ -1,0 +1,9 @@
+sounddevice
+vosk
+pvporcupine
+pvrecorder
+openai
+re
+requests
+google-cloud-texttospeech
+pydub

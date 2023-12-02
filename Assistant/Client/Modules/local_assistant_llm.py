@@ -1,4 +1,5 @@
 import openai
+import re
 
 def useLocalLLM(host,port):
     openai.api_key = "..."

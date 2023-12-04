@@ -25,7 +25,7 @@ echo "Python pydub requires ffmpeg to be installed."
 echo "Please grant sudo for \"apt install ffmpeg\""
 echo ""
 
-sudo apt install ffmpeg
+sudo apt install ffmpeg python-pip
 
 
 # Download models

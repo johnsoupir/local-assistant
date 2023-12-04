@@ -3,7 +3,7 @@ vosk
 pvporcupine
 pvrecorder
 openai
-re
 requests
 google-cloud-texttospeech
 pydub
+paho-mqtt

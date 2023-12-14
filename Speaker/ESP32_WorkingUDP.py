@@ -21,11 +21,12 @@ stream.start()
 
 amplification_factor = 5.0  # Adjust the amplification factor as needed
 
-# Function to print the received audio data
+"""# Function to print the received audio data
 def print_data(audio_data):
     print("Received audio data:")
     print(audio_data)
-
+"""
+    
 try:
     while True:
         # Receive binary data from the ESP32
@@ -44,7 +45,7 @@ try:
         stream.write(amplified_data_int32)
 
         # Print the received data
-        print_data(audio_data)
+        # print_data(audio_data)
 
 except KeyboardInterrupt:
     print("Closing the script.")

@@ -114,17 +114,32 @@ void loop()
 
       while (millis() - startTime < sendInterval)
       {
+        // Check MQTT messages in the inner loop
+        client.loop();
+
+        // Read audio data only if the microphone is enabled
+        if (!micEnabled)
+        {
+          // Stop capturing and break out of the inner loop
+          Serial.println("Microphone disabled. Stopping capture.");
+          break;
+        }
+
         i2s_read(I2S_NUM_0, audioData, sizeof(audioData), &bytesRead, portMAX_DELAY);
 
         udp.beginPacket(udpAddress, udpPort);
         udp.write(audioData, bytesRead);
         udp.endPacket();
+
+        // Check MQTT messages again within the inner loop
+        client.loop();
       }
 
       Serial.println("Sending complete. Continuing to capture...");
     }
   }
 }
+
 
 void connectToWiFi()
 {

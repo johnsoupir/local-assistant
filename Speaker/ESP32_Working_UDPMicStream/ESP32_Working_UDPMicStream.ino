@@ -13,8 +13,9 @@ const int udpPort = 12345;
 // Included for MQTT setup
 const char* mqttServer = "10.10.65.32"; 
 const int mqttPort = 1884;
-const char* username = ""; // my AskSensors username
-const char* mqttTopic = "hub/mic_control"; // actuator/username/apiKeyOut
+// const char* username = ""; // my AskSensors username
+const char* mqttTopic1 = "speaker/mic_control"; // mic_control topic
+
 
 const int bckPin = 4;  // BCK pin
 const int wsPin = 5;  // WS pin
@@ -28,21 +29,14 @@ unsigned long startTime;
 const unsigned long captureDuration = 2000; // 2 seconds in milliseconds
 const unsigned long sendInterval = 5000;    // 5 seconds in milliseconds
 
-bool micEnabled = true; // Initial state of the microphone
+bool micEnabled = true; // Initial state of the micEnabled
+bool responseReady = false; // Initial state of the responseReady
 
 void setup()
 {
   Serial.begin(115200);
 
-  // Connect to Wi-Fi with static IP and custom subnet
-  //IPAddress staticIP(10, 10, 65, 35);  // Replace with your desired static IP address
-  //IPAddress gateway(10, 10, 65, 1);     // Replace with your gateway IP address
-  //IPAddress subnet(255, 255, 255, 0);   // Replace with your subnet mask
-
-  //WiFi.config(staticIP, gateway, subnet);
-
   connectToWiFi();
-  // connectToMQTT(); //commented 
 
   // Initialize I2S
   i2s_config_t i2s_config = {
@@ -92,55 +86,73 @@ void loop()
 {
   // Check MQTT messages
   client.loop();
-
-  // Read audio data only if the microphone is enabled
+  
+  // Microphone Audio
   if (micEnabled)
   {
-    size_t bytesRead;
-    uint8_t audioData[4096];
+    captureAudio();
+  }
 
-    i2s_read(I2S_NUM_0, audioData, sizeof(audioData), &bytesRead, portMAX_DELAY);
+  // Speaker Response
+  if (responseReady)
+  {
+    responsePlay()
+  }
+  
+}
 
-    udp.beginPacket(udpAddress, udpPort);
-    udp.write(audioData, bytesRead);
-    udp.endPacket();
+//Capture Microphone Audio
+void captureAudio()
+{
+  size_t bytesRead;
+  uint8_t audioData[4096];
 
-    // Check if 2 seconds have passed
-    if (millis() - startTime >= captureDuration)
+  i2s_read(I2S_NUM_0, audioData, sizeof(audioData), &bytesRead, portMAX_DELAY);
+
+  udp.beginPacket(udpAddress, udpPort);
+  udp.write(audioData, bytesRead);
+  udp.endPacket();
+
+  // Check if 2 seconds have passed
+  if (millis() - startTime >= captureDuration)
+  {
+    Serial.println("Captured 2 seconds of audio. Sending...");
+
+    startTime = millis();
+
+    while (millis() - startTime < sendInterval)
     {
-      Serial.println("Captured 2 seconds of audio. Sending...");
+      // Check MQTT messages in the inner loop
+      client.loop();
 
-      startTime = millis();
-
-      while (millis() - startTime < sendInterval)
+      // Read audio data only if the microphone is enabled
+      if (!micEnabled)
       {
-        // Check MQTT messages in the inner loop
-        client.loop();
-
-        // Read audio data only if the microphone is enabled
-        if (!micEnabled)
-        {
-          // Stop capturing and break out of the inner loop
-          Serial.println("Microphone disabled. Stopping capture.");
-          break;
-        }
-
-        i2s_read(I2S_NUM_0, audioData, sizeof(audioData), &bytesRead, portMAX_DELAY);
-
-        udp.beginPacket(udpAddress, udpPort);
-        udp.write(audioData, bytesRead);
-        udp.endPacket();
-
-        // Check MQTT messages again within the inner loop
-        client.loop();
+        // Stop capturing and break out of the inner loop
+        Serial.println("Microphone disabled. Stopping capture.");
+        break;
       }
 
-      Serial.println("Sending complete. Continuing to capture...");
+      i2s_read(I2S_NUM_0, audioData, sizeof(audioData), &bytesRead, portMAX_DELAY);
+
+      udp.beginPacket(udpAddress, udpPort);
+      udp.write(audioData, bytesRead);
+      udp.endPacket();
+
+      // Check MQTT messages again within the inner loop
+      client.loop();
     }
+
+    Serial.println("Sending complete. Continuing to capture...");
   }
 }
 
+void responsePlay()
+{
 
+}
+
+// Connect to WiFi Funciton
 void connectToWiFi()
 {
   // Attempt to connect to Wi-Fi up to 10 times
@@ -183,29 +195,7 @@ void connectToWiFi()
   }
 }
 
-/*
-void connectToMQTT()
-{
-  Serial.print("Connecting to MQTT...");
-  while (!client.connected())
-  {
-    if (client.connect("ESP32Client1", username, ""))
-    {
-      Serial.println("connected to MQTT broker");
-      client.subscribe(mqttTopic);
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 2 seconds");
-      delay(2000);
-    }
-  }
-}
-*/
-
-// Used instead of above code
+// reconnect to MQTT
 void reconnect() 
 {
   // Loop until we're reconnected

@@ -1,4 +1,5 @@
 # Local Assistant
+![Local Assistant Banner](./logo2.png)
 
 ## Description
 

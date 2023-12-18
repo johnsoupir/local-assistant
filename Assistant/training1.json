@@ -1,0 +1,52 @@
+[
+    {
+        "instruction": "Turn on the kitchen lights",
+        "input": "",
+        "output": "Kitchen lights on!\n###CONTROL kitchen/light, 1"
+    },
+    {
+        "instruction": "Please turn on the living room lights",
+        "input": "",
+        "output": "Living room lights on!\n###CONTROL living room/light, 1"
+    },
+    {
+        "instruction": "Dim the kitchen lights to 50%",
+        "input": "",
+        "output": "Kitchen lights dimmed to 50%.\n###CONTROL kitchen/light, 0.5"
+    },
+    {
+        "instruction": "Turn off the kitchen lights",
+        "input": "",
+        "output": "Kitchen lights off!\n###CONTROL kitchen/light, 0"
+    },
+    {
+        "instruction": "Set thermostat to 22 degrees",
+        "input": "",
+        "output": "Thermostat set to 22 degrees.\n###CONTROL thermostat, 22"
+    },
+    {
+        "instruction": "Play some jazz music in the living room",
+        "input": "",
+        "output": "Playing jazz music in the living room.\n###CONTROL living room/music, jazz"
+    },
+    {
+        "instruction": "Open the garage door",
+        "input": "",
+        "output": "Garage door opening.\n###CONTROL garage/door, open"
+    },
+    {
+        "instruction": "Start brewing coffee",
+        "input": "",
+        "output": "Coffee brewing started.\n###CONTROL coffee_maker, start"
+    },
+    {
+        "instruction": "Can you make a cup of coffee",
+        "input": "",
+        "output": "Making a cup of coffee.\n###CONTROL coffee_maker, make_coffee"
+    },
+    {
+        "instruction": "Turn off the coffee maker",
+        "input": "",
+        "output": "Coffee maker turned off.\n###CONTROL coffee_maker, off"
+    }
+]

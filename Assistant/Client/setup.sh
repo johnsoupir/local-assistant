@@ -25,8 +25,44 @@ echo "Python pydub requires ffmpeg to be installed."
 echo "Please grant sudo for \"apt install ffmpeg\""
 echo ""
 
-sudo apt install ffmpeg
+packages=("python3" "python3-pip" "ffmpeg")
 
+packages_to_install=0
+
+# Do we need packages?
+for package in "${packages[@]}"; do
+    if ! dpkg -l | grep -q "^ii  $package "; then
+        packages_to_install=1
+        break
+    fi
+done
+
+# For systems not using apt
+if ! command -v apt &> /dev/null; then
+    echo "Error: This system does not have apt package manager installed."
+    if [ $packages_to_install -eq 1 ]; then
+        echo "Please install the following packages manually:"
+        for package in "${packages[@]}"; do
+            echo "  - $package"
+        done
+    else
+        echo "No package installations are needed. Continuing with other tasks..."
+    fi
+    exit 1
+fi
+
+# For systems with apt
+if [ $packages_to_install -eq 1 ]; then
+    echo "Installing required packages using apt..."
+    sudo apt-get update
+    sudo apt-get install -y "${packages[@]}"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to install one or more packages. Please install them manually."
+        exit 1
+    else
+        echo "All required packages are installed."
+    fi
+fi
 
 # Download models
 echo "-------------------- DOWNLOAD MODELS --------------------"

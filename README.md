@@ -1,4 +1,4 @@
-# Local Assistant
+# Local Assistant !! Experimental Alpha !!
 ![Local Assistant Banner](./logo2.png)
 
 ## Description

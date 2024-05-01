@@ -64,6 +64,7 @@ try:
                     print('User: ' + userSpeech + "\n")
 
                     answer = promptOpenAI(systemPrompt + userSpeech)
+                    answer = promptWithThread(userSpeech, 1.8)
                     print('LLM: ' +  answer + "\n")
                     answer = removeEmojis(answer)
                     # googleTTS(answer, "out.wav")

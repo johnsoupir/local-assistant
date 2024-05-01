@@ -38,7 +38,7 @@ try:
     recoder.start()
     args = sys.argv[1:]
     voskSamplerate = 16000  
-    voskModel = Model(lang="en-us")
+    voskModel = Model("vosk-model-en-us-0.42-gigaspeech")
 
     while True:
         wakeWordIndex = porcupine.process(recoder.read())

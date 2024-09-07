@@ -69,7 +69,11 @@ echo "-------------------- DOWNLOAD MODELS --------------------"
 echo ""
 echo "Now we are going to download the STT models. Hang tight."
 echo ""
-echo "REMINDER, ACTUALLY ADD THIS"
+wget https://alphacephei.com/vosk/models/vosk-model-en-us-0.42-gigaspeech.zip
+echo "Decompress model..."
+unzip vosk-model-en-us-0.42-gigaspeech.zip
+rm vosk-model-en-us-0.42-gigaspeech.zip
+
 
 # Completed installation!
 echo "-------------------- INSTALLED!!! --------------------"
